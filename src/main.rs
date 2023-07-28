@@ -49,7 +49,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut terminal = Terminal::new(backend)?;
     
     let input = env::args().nth(1).expect("Sound filename not provided");
-    //let p = Path::new(&);
     let canonical = fs::canonicalize(&input)?;
     let sound_filename = match canonical.to_str() {
         Some(x) => x,
