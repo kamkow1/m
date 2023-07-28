@@ -42,7 +42,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 
     'program_loop: loop {
-        render_frame(&mut terminal).expect("Failed to render frame");
+        render_frame(&mut terminal)?;
 
         if let Event::Key(key) = event::read()? {
             match key.code {
