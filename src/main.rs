@@ -1,4 +1,6 @@
-use std::{io, error::Error};
+#![feature(absolute_path)]
+
+use std::{path::Path, fs, env, io, error::Error};
 use tui::{
     backend::{CrosstermBackend, Backend},
     widgets::{Block, Borders},
@@ -21,16 +23,22 @@ use crossterm::{
     execute,
 };
 
-fn render_frame<B: Backend>(terminal: &mut Terminal<B>) -> io::Result<()> {
-    terminal.draw(|frame| {
-        let size = frame.size();
-        let block = Block::default()
-            .title("eeoeoe")
-            .borders(Borders::ALL);
-        frame.render_widget(block, size);
-    })?;
+struct App<'a> {
+    sound_filename: &'a str,
+}
 
-    Ok(())
+impl App<'_> {
+    fn render_frame<B: Backend>(&self, terminal: &mut Terminal<B>) -> io::Result<()> {
+        terminal.draw(|frame| {
+            let size = frame.size();
+            let block = Block::default()
+                .title(self.sound_filename)
+                .borders(Borders::ALL);
+            frame.render_widget(block, size);
+        })?;
+
+        Ok(())
+    }
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -39,10 +47,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
-
+    
+    let input = env::args().nth(1).expect("Sound filename not provided");
+    //let p = Path::new(&);
+    let canonical = fs::canonicalize(&input)?;
+    let sound_filename = match canonical.to_str() {
+        Some(x) => x,
+        None => "Failed to canonicalize sound filename",
+    };
+    let app = App{ sound_filename };
 
     'program_loop: loop {
-        render_frame(&mut terminal)?;
+        app.render_frame(&mut terminal)?;
 
         if let Event::Key(key) = event::read()? {
             match key.code {
